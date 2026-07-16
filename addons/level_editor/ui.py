@@ -9,6 +9,12 @@ from .op_add import (
     MYADDON_OT_add_enemy_spawn_point,
     MYADDON_OT_add_camera_point,
     MYADDON_OT_add_camera_fov_point,
+    MYADDON_OT_add_gimmick,
+    MYADDON_OT_add_patrol_route,
+    MYADDON_OT_add_patrol_waypoint,
+    MYADDON_OT_add_terrain,
+    MYADDON_OT_add_mesh_sync,
+    MYADDON_OT_create_terrain_mesh,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -59,6 +65,12 @@ class TOPBAR_MT_my_menu(bpy.types.Menu):
             MYADDON_OT_spawn_create_enemy.bl_idname,
             text="敵出現ポイントの作成",
             icon='OUTLINER_OB_EMPTY'
+        )
+
+        self.layout.operator(
+            MYADDON_OT_create_terrain_mesh.bl_idname,
+            text="地形（Terrain）オブジェクトの作成",
+            icon='LANDSCAPE'
         )
 
         self.layout.operator(
@@ -292,8 +304,47 @@ class OBJECT_PT_level_editor(bpy.types.Panel):
                 '["camera_fov_time"]',
                 text="Time"
             )
-        else:
             layout.operator(
                 MYADDON_OT_add_camera_fov_point.bl_idname,
                 text=MYADDON_OT_add_camera_fov_point.bl_label
             )
+
+        layout.separator()
+
+        if "gimmick" in context.object:
+            layout.label(text="Gimmick")
+            layout.prop(context.object, '["gimmick"]', text="Type")
+            layout.prop(context.object, '["gimmick_speed"]', text="Speed")
+            layout.prop(context.object, '["gimmick_range"]', text="Range")
+        else:
+            layout.operator(MYADDON_OT_add_gimmick.bl_idname, text=MYADDON_OT_add_gimmick.bl_label)
+
+        layout.separator()
+
+        if "patrol_route" in context.object:
+            layout.label(text="PatrolRoute")
+            layout.operator(MYADDON_OT_add_patrol_waypoint.bl_idname, text="巡回ポイントの追加")
+            waypoint_count = 0
+            for child in context.object.children:
+                if "waypoint" in child or child.name.startswith("Waypoint"):
+                    waypoint_count += 1
+            layout.label(text=f"ウェイポイント数: {waypoint_count}")
+        else:
+            layout.operator(MYADDON_OT_add_patrol_route.bl_idname, text=MYADDON_OT_add_patrol_route.bl_label)
+
+        layout.separator()
+
+        if "terrain" in context.object:
+            layout.label(text="Terrain")
+            layout.prop(context.object, '["terrain_file"]', text="Heightmap File")
+            layout.prop(context.object, '["terrain_width"]', text="Width")
+            layout.prop(context.object, '["terrain_height"]', text="Height")
+        else:
+            layout.operator(MYADDON_OT_add_terrain.bl_idname, text=MYADDON_OT_add_terrain.bl_label)
+
+        layout.separator()
+
+        if "mesh_sync" in context.object:
+            layout.label(text="MeshSync: 有効")
+        else:
+            layout.operator(MYADDON_OT_add_mesh_sync.bl_idname, text=MYADDON_OT_add_mesh_sync.bl_label)

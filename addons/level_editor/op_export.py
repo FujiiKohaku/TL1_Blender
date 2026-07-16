@@ -302,6 +302,83 @@ class MYADDON_OT_export_scene_json(bpy.types.Operator, bpy_extras.io_utils.Expor
                 "time": float(object.get("camera_fov_time", 1.0))
             }
 
+        if "gimmick" in object:
+            gimmick_range = VectorUtility.get_vector3(
+                object.get("gimmick_range"),
+                [0.0, 0.0, 0.0]
+            )
+            object_data["gimmick"] = {
+                "enable": True,
+                "type": str(object.get("gimmick", "ROTATION")),
+                "speed": float(object.get("gimmick_speed", 1.0)),
+                "range": gimmick_range
+            }
+
+        if "patrol_route" in object:
+            waypoints = []
+            for child in object.children:
+                if "waypoint" in child or child.name.startswith("Waypoint"):
+                    waypoints.append([child.location.x, child.location.y, child.location.z])
+            object_data["patrol_route"] = {
+                "enable": True,
+                "waypoints": waypoints
+            }
+
+        if "terrain" in object:
+            # OBJ保存先のフォルダを作成
+            models_dir = r"C:\Projects\KohakuEngine\project\resources\Models"
+            if not os.path.exists(models_dir):
+                try:
+                    os.makedirs(models_dir)
+                except Exception as e:
+                    print(f"フォルダ作成エラー: {str(e)}")
+
+            # 個別のOBJファイル名を決定
+            clean_name = object.name.replace(".", "_")
+            obj_filename = f"Terrain_{clean_name}.obj"
+            full_path = os.path.join(models_dir, obj_filename)
+
+            # 元の選択状態を退避
+            active_obj = bpy.context.view_layer.objects.active
+            selected_objs = list(bpy.context.selected_objects)
+
+            # 選択をクリアし、現在のオブジェクトのみを選択
+            bpy.ops.object.select_all(action='DESELECT')
+            object.select_set(True)
+            bpy.context.view_layer.objects.active = object
+
+            # OBJエクスポートの実行
+            try:
+                # Blender 4.x の新しい OBJ エクスポーターを使用
+                bpy.ops.wm.obj_export(
+                    filepath=full_path,
+                    export_selected_objects=True,
+                    forward_axis='Z',
+                    up_axis='Y'
+                )
+                print(f"[Terrain Export] Exported sculpted terrain to: {full_path}")
+            except Exception as e:
+                print(f"[Terrain Export] Error exporting OBJ: {str(e)}")
+
+            # 選択状態を復元
+            bpy.ops.object.select_all(action='DESELECT')
+            for sobj in selected_objs:
+                try:
+                    sobj.select_set(True)
+                except Exception:
+                    pass
+            bpy.context.view_layer.objects.active = active_obj
+
+            object_data["terrain"] = {
+                "enable": True,
+                "file": obj_filename,
+                "width": float(object.get("terrain_width", 100.0)),
+                "height": float(object.get("terrain_height", 10.0))
+            }
+
+        if "mesh_sync" in object:
+            object_data["mesh_sync"] = bool(object.get("mesh_sync", True))
+
         for child in object.children:
             child_data = self.make_object_data(child)
             object_data["children"].append(child_data)

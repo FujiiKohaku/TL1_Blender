@@ -11,6 +11,12 @@ from .op_add import (
     MYADDON_OT_add_enemy_spawn_point,
     MYADDON_OT_add_camera_point,
     MYADDON_OT_add_camera_fov_point,
+    MYADDON_OT_add_gimmick,
+    MYADDON_OT_add_patrol_route,
+    MYADDON_OT_add_patrol_waypoint,
+    MYADDON_OT_add_terrain,
+    MYADDON_OT_add_mesh_sync,
+    MYADDON_OT_create_terrain_mesh,
 )
 from .op_export import MYADDON_OT_export_scene, MYADDON_OT_export_scene_json
 from .ui import TOPBAR_MT_my_menu, OBJECT_PT_level_editor
@@ -54,6 +60,12 @@ classes = (
     MYADDON_OT_add_enemy_spawn_point,
     MYADDON_OT_add_camera_point,
     MYADDON_OT_add_camera_fov_point,
+    MYADDON_OT_add_gimmick,
+    MYADDON_OT_add_patrol_route,
+    MYADDON_OT_add_patrol_waypoint,
+    MYADDON_OT_add_terrain,
+    MYADDON_OT_add_mesh_sync,
+    MYADDON_OT_create_terrain_mesh,
     MYADDON_OT_export_scene,
     MYADDON_OT_export_scene_json,
     TOPBAR_MT_my_menu,

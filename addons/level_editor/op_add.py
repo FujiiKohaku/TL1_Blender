@@ -143,3 +143,142 @@ class MYADDON_OT_add_camera_fov_point(bpy.types.Operator):
         context.object["camera_fov_time"] = 1.0
 
         return {'FINISHED'}
+
+
+class MYADDON_OT_add_gimmick(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_gimmick"
+    bl_label = "Gimmick追加"
+    bl_description = "選択中のオブジェクトにGimmickを追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object is None:
+            self.report({'WARNING'}, "オブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        context.object["gimmick"] = "ROTATION"
+        context.object["gimmick_speed"] = 1.0
+        context.object["gimmick_range"] = mathutils.Vector((0.0, 0.0, 0.0))
+
+        return {'FINISHED'}
+
+
+class MYADDON_OT_add_patrol_route(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_patrol_route"
+    bl_label = "PatrolRoute追加"
+    bl_description = "選択中のオブジェクトに巡回ルートを追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object is None:
+            self.report({'WARNING'}, "オブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        context.object["patrol_route"] = True
+
+        return {'FINISHED'}
+
+
+class MYADDON_OT_add_patrol_waypoint(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_patrol_waypoint"
+    bl_label = "巡回ポイントの作成"
+    bl_description = "選択中のオブジェクトの子として巡回用のEmptyを追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        parent_obj = context.object
+        if parent_obj is None:
+            self.report({'WARNING'}, "親となるオブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        # 新しいEmptyオブジェクトを作成
+        waypoint = bpy.data.objects.new("Waypoint", None)
+        context.collection.objects.link(waypoint)
+        waypoint.parent = parent_obj
+        
+        # 3Dカーソル位置に配置
+        waypoint.location = context.scene.cursor.location
+        waypoint["waypoint"] = True
+
+        # 作成したEmptyを選択・アクティブにする
+        bpy.ops.object.select_all(action='DESELECT')
+        waypoint.select_set(True)
+        context.view_layer.objects.active = waypoint
+
+        return {'FINISHED'}
+
+
+class MYADDON_OT_add_terrain(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_terrain"
+    bl_label = "Terrain追加"
+    bl_description = "選択中のオブジェクトにTerrainを追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object is None:
+            self.report({'WARNING'}, "オブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        context.object["terrain"] = True
+        context.object["terrain_file"] = "heightmap.png"
+        context.object["terrain_width"] = 100.0
+        context.object["terrain_height"] = 10.0
+
+        return {'FINISHED'}
+
+
+class MYADDON_OT_add_mesh_sync(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_mesh_sync"
+    bl_label = "MeshSync追加"
+    bl_description = "選択中のオブジェクトにMeshSyncを追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        if context.object is None:
+            self.report({'WARNING'}, "オブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        context.object["mesh_sync"] = True
+
+        return {'FINISHED'}
+
+
+class MYADDON_OT_create_terrain_mesh(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_create_terrain_mesh"
+    bl_label = "地形（Terrain）オブジェクトの作成"
+    bl_description = "スカルプト可能な細分化グリッドを作成し、Terrainプロパティを設定します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        cursor_loc = context.scene.cursor.location
+
+        try:
+            bpy.ops.mesh.primitive_grid_add(
+                x_subdivisions=100,
+                y_subdivisions=100,
+                size=100.0,
+                location=cursor_loc
+            )
+        except Exception as e:
+            self.report({'ERROR'}, f"グリッド生成に失敗しました: {str(e)}")
+            return {'CANCELLED'}
+
+        grid_obj = context.view_layer.objects.active
+        if grid_obj is None:
+            self.report({'ERROR'}, "生成されたオブジェクトのアクティブ化に失敗しました")
+            return {'CANCELLED'}
+
+        grid_obj.name = "Terrain"
+
+        grid_obj["terrain"] = True
+        grid_obj["terrain_file"] = "Terrain_Stage.obj"
+        grid_obj["terrain_width"] = 100.0
+        grid_obj["terrain_height"] = 10.0
+
+        try:
+            bpy.ops.object.mode_set(mode='SCULPT')
+            self.report({'INFO'}, "Terrainオブジェクトを作成しました。スカルプトモードを開始します。")
+        except Exception as e:
+            self.report({'WARNING'}, f"スカルプトモードへの切り替えに失敗しました: {str(e)}")
+
+        return {'FINISHED'}
