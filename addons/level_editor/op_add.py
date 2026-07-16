@@ -789,8 +789,8 @@ class MYADDON_OT_control_character(bpy.types.Operator):
 
     def modal(self, context, event):
         rig = context.active_object
-        if rig is None or rig.name != "PlayerRig":
-            self.report({'WARNING'}, "PlayerRigが選択されていません。選択した状態で開始してください。")
+        if rig is None or not (rig.name == "PlayerRig" or rig.name == "RobotRig"):
+            self.report({'WARNING'}, "操作対象のPlayerRigまたはRobotRigが選択されていません")
             return self.cancel(context)
 
         if event.type == 'W' or event.type == 'UP_ARROW':
@@ -855,8 +855,8 @@ class MYADDON_OT_control_character(bpy.types.Operator):
 
     def execute(self, context):
         rig = context.active_object
-        if rig is None or rig.name != "PlayerRig":
-            self.report({'WARNING'}, "PlayerRigが選択されていません。選択した状態で実行してください。")
+        if rig is None or not (rig.name == "PlayerRig" or rig.name == "RobotRig"):
+            self.report({'WARNING'}, "PlayerRigまたはRobotRigが選択されていません。選択した状態で実行してください。")
             return {'CANCELLED'}
 
         wm = context.window_manager
@@ -876,3 +876,329 @@ class MYADDON_OT_control_character(bpy.types.Operator):
 
         self.report({'INFO'}, "キャラクターの操作を終了しました。")
         return {'CANCELLED'}
+
+
+class MYADDON_OT_create_robot_character(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_create_robot_character"
+    bl_label = "走るメカロボットの追加"
+    bl_description = "画像そっくりのSFロボットを自動モデリングし、ボーンを入れて走るアニメーションを適用します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        active_obj = context.active_object
+        if active_obj is not None:
+            if active_obj.mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+        cursor_loc = context.scene.cursor.location
+
+        try:
+            # --- 1. 頭部 (Head with Visor & Pipes) ---
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=0.45, location=(0, 0, 1.45))
+            head_obj = context.active_object
+            head_obj.name = "Bot_Head"
+            head_obj.scale = (0.9, 1.1, 1.0)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.1, depth=0.6, location=(0, -0.32, 1.45))
+            visor = context.active_object
+            visor.name = "Bot_Visor"
+            visor.rotation_euler = (0, 1.57, 0)
+            bpy.ops.object.transform_apply(rotation=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.04, depth=0.5, location=(0.12, 0.25, 1.35))
+            pipe1 = context.active_object
+            pipe1.name = "Bot_Pipe1"
+            pipe1.rotation_euler = (0.5, 0, 0)
+            bpy.ops.object.transform_apply(rotation=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.04, depth=0.5, location=(-0.12, 0.25, 1.35))
+            pipe2 = context.active_object
+            pipe2.name = "Bot_Pipe2"
+            pipe2.rotation_euler = (0.5, 0, 0)
+            bpy.ops.object.transform_apply(rotation=True)
+
+            # --- 2. 胴体 (Heavy Torso with Armor Plate) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.85))
+            body_obj = context.active_object
+            body_obj.name = "Bot_Body"
+            
+            bev = body_obj.modifiers.new(name="Bevel", type='BEVEL')
+            bev.width = 0.08
+            
+            tap = body_obj.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'Z'
+            tap.factor = -0.35
+            
+            body_obj.scale = (0.45, 0.38, 0.48)
+            bpy.ops.object.modifier_apply(modifier="Bevel")
+            bpy.ops.object.modifier_apply(modifier="Taper")
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.22, 0.95))
+            armor = context.active_object
+            armor.name = "Bot_Armor"
+            tap = armor.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'Z'
+            tap.factor = -0.6
+            armor.scale = (0.28, 0.15, 0.35)
+            bpy.ops.object.modifier_apply(modifier="Taper")
+            bpy.ops.object.transform_apply(scale=True)
+
+            # --- 3. 肩アーマー (Shoulder Armor) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.35, 0, 1.15))
+            sh_l = context.active_object
+            sh_l.name = "Bot_Shoulder_L"
+            bev = sh_l.modifiers.new(name="Bevel", type='BEVEL')
+            bev.width = 0.15
+            bev.segments = 2
+            sh_l.scale = (0.25, 0.28, 0.25)
+            bpy.ops.object.modifier_apply(modifier="Bevel")
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.35, 0, 1.15))
+            sh_r = context.active_object
+            sh_r.name = "Bot_Shoulder_R"
+            bev = sh_r.modifiers.new(name="Bevel", type='BEVEL')
+            bev.width = 0.15
+            bev.segments = 2
+            sh_r.scale = (0.25, 0.28, 0.25)
+            bpy.ops.object.modifier_apply(modifier="Bevel")
+            bpy.ops.object.transform_apply(scale=True)
+
+            # --- 4. 腕 (Arm Pieces) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.58, 0, 1.0))
+            arm_l = context.active_object
+            arm_l.name = "Bot_Arm_L"
+            arm_l.scale = (0.16, 0.16, 0.4)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.58, 0, 1.0))
+            arm_r = context.active_object
+            arm_r.name = "Bot_Arm_R"
+            arm_r.scale = (0.16, 0.16, 0.4)
+            bpy.ops.object.transform_apply(scale=True)
+
+            # --- 5. 太い脚 (Thick Legs with Piston & Anchor) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.18, 0, 0.48))
+            leg_l_1 = context.active_object
+            leg_l_1.name = "Bot_Leg_L1"
+            leg_l_1.scale = (0.18, 0.18, 0.3)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.18, 0, 0.18))
+            leg_l_2 = context.active_object
+            leg_l_2.name = "Bot_Leg_L2"
+            leg_l_2.scale = (0.15, 0.15, 0.3)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.04, depth=0.3, location=(0.18, 0.15, 0.18))
+            piston_l = context.active_object
+            piston_l.name = "Bot_Piston_L"
+            bpy.ops.object.transform_apply(scale=True)
+
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.18, 0, 0.48))
+            leg_r_1 = context.active_object
+            leg_r_1.name = "Bot_Leg_R1"
+            leg_r_1.scale = (0.18, 0.18, 0.3)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.18, 0, 0.18))
+            leg_r_2 = context.active_object
+            leg_r_2.name = "Bot_Leg_R2"
+            leg_r_2.scale = (0.15, 0.15, 0.3)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.04, depth=0.3, location=(-0.18, 0.15, 0.18))
+            piston_r = context.active_object
+            piston_r.name = "Bot_Piston_R"
+            bpy.ops.object.transform_apply(scale=True)
+
+            # --- 6. 足首とアンカーピン (Feet with anchor pin) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.18, -0.06, 0.05))
+            foot_l = context.active_object
+            foot_l.name = "Bot_Foot_L"
+            foot_l.scale = (0.18, 0.26, 0.1)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.03, depth=0.25, location=(0.18, 0.08, 0.12))
+            pin_l = context.active_object
+            pin_l.name = "Bot_Pin_L"
+            bpy.ops.object.transform_apply(scale=True)
+
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.18, -0.06, 0.05))
+            foot_r = context.active_object
+            foot_r.name = "Bot_Foot_R"
+            foot_r.scale = (0.18, 0.26, 0.1)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.03, depth=0.25, location=(-0.18, 0.08, 0.12))
+            pin_r = context.active_object
+            pin_r.name = "Bot_Pin_R"
+            bpy.ops.object.transform_apply(scale=True)
+
+            # すべて結合
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            head_obj.select_set(True)
+            visor.select_set(True)
+            pipe1.select_set(True)
+            pipe2.select_set(True)
+            body_obj.select_set(True)
+            armor.select_set(True)
+            sh_l.select_set(True)
+            sh_r.select_set(True)
+            arm_l.select_set(True)
+            arm_r.select_set(True)
+            leg_l_1.select_set(True)
+            leg_l_2.select_set(True)
+            piston_l.select_set(True)
+            leg_r_1.select_set(True)
+            leg_r_2.select_set(True)
+            piston_r.select_set(True)
+            foot_l.select_set(True)
+            pin_l.select_set(True)
+            foot_r.select_set(True)
+            pin_r.select_set(True)
+            
+            context.view_layer.objects.active = body_obj
+            bpy.ops.object.join()
+            
+            char_mesh = body_obj
+            char_mesh.name = "RobotModel"
+            
+            char_mesh.location = cursor_loc
+            bpy.ops.object.transform_apply(location=True)
+
+            # --- 7. ボーン（アーマチュア）の作成 ---
+            arm_data = bpy.data.armatures.new("RobotArmatureData")
+            rig_obj = bpy.data.objects.new("RobotRig", arm_data)
+            context.scene.collection.objects.link(rig_obj)
+            
+            context.view_layer.objects.active = rig_obj
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            spine = arm_data.edit_bones.new("Spine")
+            spine.head = (0.0, 0.0, 0.6)
+            spine.tail = (0.0, 0.0, 1.2)
+            
+            head = arm_data.edit_bones.new("Head")
+            head.head = (0.0, 0.0, 1.2)
+            head.tail = (0.0, 0.0, 1.8)
+            head.parent = spine
+            
+            arm_l_bone = arm_data.edit_bones.new("Arm_L")
+            arm_l_bone.head = (0.1, 0.0, 1.1)
+            arm_l_bone.tail = (0.7, 0.0, 1.1)
+            arm_l_bone.parent = spine
+            
+            arm_r_bone = arm_data.edit_bones.new("Arm_R")
+            arm_r_bone.head = (-0.1, 0.0, 1.1)
+            arm_r_bone.tail = (-0.7, 0.0, 1.1)
+            arm_r_bone.parent = spine
+            
+            leg_l_bone = arm_data.edit_bones.new("Leg_L")
+            leg_l_bone.head = (0.18, 0.0, 0.6)
+            leg_l_bone.tail = (0.18, 0.0, 0.0)
+            
+            leg_r_bone = arm_data.edit_bones.new("Leg_R")
+            leg_r_bone.head = (-0.18, 0.0, 0.6)
+            leg_r_bone.tail = (-0.18, 0.0, 0.0)
+            
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            rig_obj.location = cursor_loc
+            bpy.ops.object.transform_apply(location=True)
+
+            bpy.ops.object.select_all(action='DESELECT')
+            char_mesh.select_set(True)
+            rig_obj.select_set(True)
+            context.view_layer.objects.active = rig_obj
+            
+            bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+
+            # --- 8. 重厚な走りアニメーション作成 ---
+            if rig_obj.animation_data is None:
+                rig_obj.animation_data_create()
+                
+            action = bpy.data.actions.new("Player_Run")
+            rig_obj.animation_data.action = action
+            
+            for pb in rig_obj.pose.bones:
+                pb.rotation_mode = 'XYZ'
+                
+            import math
+            # 少し深く前傾 (18度)
+            rad18 = math.radians(18)
+            rad35 = math.radians(35) # 腕は大きくスイング
+            rad40 = math.radians(40) # 脚も大きくスイング
+            
+            keyframes = [
+                # Frame 0 (左脚後ろ、右脚前、左腕前、右腕後ろ)
+                ("Leg_L", 'X', 0, -rad40),
+                ("Leg_R", 'X', 0, rad40),
+                ("Arm_L", 'X', 0, rad35),
+                ("Arm_R", 'X', 0, -rad35),
+                ("Spine", 'X', 0, rad18),
+                
+                # Frame 6 (通過期)
+                ("Leg_L", 'X', 6, 0.0),
+                ("Leg_R", 'X', 6, 0.0),
+                ("Arm_L", 'X', 6, 0.0),
+                ("Arm_R", 'X', 6, 0.0),
+                
+                # Frame 12 (左脚前、右脚後ろ、左腕後ろ、右腕前)
+                ("Leg_L", 'X', 12, rad40),
+                ("Leg_R", 'X', 12, -rad40),
+                ("Arm_L", 'X', 12, -rad35),
+                ("Arm_R", 'X', 12, rad35),
+                ("Spine", 'X', 12, rad18),
+                
+                # Frame 18 (通過期)
+                ("Leg_L", 'X', 18, 0.0),
+                ("Leg_R", 'X', 18, 0.0),
+                ("Arm_L", 'X', 18, 0.0),
+                ("Arm_R", 'X', 18, 0.0),
+                
+                # Frame 24
+                ("Leg_L", 'X', 24, -rad40),
+                ("Leg_R", 'X', 24, rad40),
+                ("Arm_L", 'X', 24, rad35),
+                ("Arm_R", 'X', 24, -rad35),
+                ("Spine", 'X', 24, rad18)
+            ]
+            
+            for bone_name, axis, frame, val in keyframes:
+                pb = rig_obj.pose.bones.get(bone_name)
+                if pb is not None:
+                    axis_idx = 0
+                    if axis == 'Y':
+                        axis_idx = 1
+                    elif axis == 'Z':
+                        axis_idx = 2
+                    
+                    pb.rotation_euler[axis_idx] = val
+                    pb.keyframe_insert(data_path="rotation_euler", index=axis_idx, frame=frame)
+            
+            # 重量感のあるバウンド
+            for frame, val in [(0, 0.82), (6, 0.96), (12, 0.82), (18, 0.96), (24, 0.82)]:
+                pb = rig_obj.pose.bones.get("Spine")
+                if pb is not None:
+                    pb.location[2] = val - 0.85
+                    pb.keyframe_insert(data_path="location", index=2, frame=frame)
+            
+            context.scene.frame_end = 24
+            
+            bpy.ops.object.select_all(action='DESELECT')
+            rig_obj.select_set(True)
+            context.view_layer.objects.active = rig_obj
+            
+            self.report({'INFO'}, "走るメカロボットを追加しました！スペースキーで走ります。")
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"ロボットの追加に失敗しました: {str(e)}")
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
