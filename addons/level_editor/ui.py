@@ -23,8 +23,8 @@ from .op_export import (
 from .spawn import MYADDON_OT_spawn_create_player, MYADDON_OT_spawn_create_enemy
 
 
-class TOPBAR_MT_my_menu(bpy.types.Menu):
-    bl_idname = "TOPBAR_MT_my_menu"
+class TOPBAR_MT_my_level_menu(bpy.types.Menu):
+    bl_idname = "TOPBAR_MT_my_level_menu"
     bl_label = "MyMenu"
     bl_description = "拡張メニュー by Taro Kamata"
 
@@ -105,7 +105,7 @@ class TOPBAR_MT_my_menu(bpy.types.Menu):
 
     @staticmethod
     def submenu(self, context):
-        self.layout.menu(TOPBAR_MT_my_menu.bl_idname)
+        self.layout.menu(TOPBAR_MT_my_level_menu.bl_idname)
 
 
 class OBJECT_PT_level_editor(bpy.types.Panel):

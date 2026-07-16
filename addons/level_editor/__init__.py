@@ -47,7 +47,7 @@ from .op_add import (
     MYADDON_OT_create_terrain_mesh,
 )
 from .op_export import MYADDON_OT_export_scene, MYADDON_OT_export_scene_json
-from .ui import TOPBAR_MT_my_menu, OBJECT_PT_level_editor
+from .ui import TOPBAR_MT_my_level_menu, OBJECT_PT_level_editor
 from .disabled import MYADDON_OT_add_disabled, OBJECT_PT_disabled
 from .spawn import (
     MYADDON_OT_spawn_import_symbol,
@@ -96,7 +96,7 @@ classes = (
     MYADDON_OT_create_terrain_mesh,
     MYADDON_OT_export_scene,
     MYADDON_OT_export_scene_json,
-    TOPBAR_MT_my_menu,
+    TOPBAR_MT_my_level_menu,
     OBJECT_PT_level_editor,
     OBJECT_PT_disabled,
 )
@@ -106,7 +106,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.TOPBAR_MT_editor_menus.append(TOPBAR_MT_my_menu.submenu)
+    bpy.types.TOPBAR_MT_editor_menus.append(TOPBAR_MT_my_level_menu.submenu)
 
     DrawCollider.handle = bpy.types.SpaceView3D.draw_handler_add(
         DrawCollider.draw_collider,
@@ -126,7 +126,7 @@ def register():
 
 
 def unregister():
-    bpy.types.TOPBAR_MT_editor_menus.remove(TOPBAR_MT_my_menu.submenu)
+    bpy.types.TOPBAR_MT_editor_menus.remove(TOPBAR_MT_my_level_menu.submenu)
 
     if DrawCollider.handle is not None:
         bpy.types.SpaceView3D.draw_handler_remove(
