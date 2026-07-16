@@ -517,62 +517,130 @@ class MYADDON_OT_create_animated_character(bpy.types.Operator):
         cursor_loc = context.scene.cursor.location
 
         try:
+            # --- 1. 頭部 (Head) ---
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.45))
             head_obj = context.active_object
             head_obj.name = "Char_Head"
-            head_obj.scale = (0.7, 0.65, 0.6)
+            
+            bev = head_obj.modifiers.new(name="Bevel", type='BEVEL')
+            bev.width = 0.12
+            bev.segments = 2
+            
+            tap = head_obj.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'Z'
+            tap.factor = -0.3
+            
+            head_obj.scale = (0.75, 0.7, 0.65)
+            bpy.ops.object.modifier_apply(modifier="Bevel")
+            bpy.ops.object.modifier_apply(modifier="Taper")
             bpy.ops.object.transform_apply(scale=True)
             
+            # --- 2. 胴体 (Torso) ---
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.85))
             body_obj = context.active_object
             body_obj.name = "Char_Body"
+            
+            bev = body_obj.modifiers.new(name="Bevel", type='BEVEL')
+            bev.width = 0.06
+            
+            tap = body_obj.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'Z'
+            tap.factor = -0.2
+            
             body_obj.scale = (0.35, 0.3, 0.5)
+            bpy.ops.object.modifier_apply(modifier="Bevel")
+            bpy.ops.object.modifier_apply(modifier="Taper")
             bpy.ops.object.transform_apply(scale=True)
             
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.45, 0, 1.1))
-            arm_l = context.active_object
-            arm_l.name = "Char_Arm_L"
-            arm_l.scale = (0.5, 0.15, 0.15)
+            # --- 3. 左腕 (Arm L) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.28, 0, 1.1))
+            arm_l_1 = context.active_object
+            arm_l_1.name = "Char_Arm_L1"
+            arm_l_1.scale = (0.2, 0.13, 0.13)
             bpy.ops.object.transform_apply(scale=True)
             
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.45, 0, 1.1))
-            arm_r = context.active_object
-            arm_r.name = "Char_Arm_R"
-            arm_r.scale = (0.5, 0.15, 0.15)
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.52, 0, 1.1))
+            arm_l_2 = context.active_object
+            arm_l_2.name = "Char_Arm_L2"
+            tap = arm_l_2.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'X'
+            tap.factor = -0.2
+            arm_l_2.scale = (0.28, 0.11, 0.11)
+            bpy.ops.object.modifier_apply(modifier="Taper")
             bpy.ops.object.transform_apply(scale=True)
             
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, 0, 0.3))
-            leg_l = context.active_object
-            leg_l.name = "Char_Leg_L"
-            leg_l.scale = (0.15, 0.15, 0.55)
+            # --- 4. 右腕 (Arm R) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.28, 0, 1.1))
+            arm_r_1 = context.active_object
+            arm_r_1.name = "Char_Arm_R1"
+            arm_r_1.scale = (0.2, 0.13, 0.13)
             bpy.ops.object.transform_apply(scale=True)
             
-            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, 0, 0.3))
-            leg_r = context.active_object
-            leg_r.name = "Char_Leg_R"
-            leg_r.scale = (0.15, 0.15, 0.55)
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.52, 0, 1.1))
+            arm_r_2 = context.active_object
+            arm_r_2.name = "Char_Arm_R2"
+            tap = arm_r_2.modifiers.new(name="Taper", type='SIMPLE_DEFORM')
+            tap.deform_method = 'TAPER'
+            tap.deform_axis = 'X'
+            tap.factor = 0.2
+            arm_r_2.scale = (0.28, 0.11, 0.11)
+            bpy.ops.object.modifier_apply(modifier="Taper")
             bpy.ops.object.transform_apply(scale=True)
             
+            # --- 5. 左脚 (Leg L) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, 0, 0.45))
+            leg_l_1 = context.active_object
+            leg_l_1.name = "Char_Leg_L1"
+            leg_l_1.scale = (0.13, 0.13, 0.28)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, 0, 0.18))
+            leg_l_2 = context.active_object
+            leg_l_2.name = "Char_Leg_L2"
+            leg_l_2.scale = (0.11, 0.11, 0.25)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            # --- 6. 右脚 (Leg R) ---
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, 0, 0.45))
+            leg_r_1 = context.active_object
+            leg_r_1.name = "Char_Leg_R1"
+            leg_r_1.scale = (0.13, 0.13, 0.28)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, 0, 0.18))
+            leg_r_2 = context.active_object
+            leg_r_2.name = "Char_Leg_R2"
+            leg_r_2.scale = (0.11, 0.11, 0.25)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            # --- 7. 足先 (Feet) ---
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, -0.05, 0.05))
             foot_l = context.active_object
             foot_l.name = "Char_Foot_L"
-            foot_l.scale = (0.15, 0.25, 0.1)
+            foot_l.scale = (0.13, 0.22, 0.1)
             bpy.ops.object.transform_apply(scale=True)
             
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, -0.05, 0.05))
             foot_r = context.active_object
             foot_r.name = "Char_Foot_R"
-            foot_r.scale = (0.15, 0.25, 0.1)
+            foot_r.scale = (0.13, 0.22, 0.1)
             bpy.ops.object.transform_apply(scale=True)
 
             bpy.ops.object.select_all(action='DESELECT')
             
             head_obj.select_set(True)
             body_obj.select_set(True)
-            arm_l.select_set(True)
-            arm_r.select_set(True)
-            leg_l.select_set(True)
-            leg_r.select_set(True)
+            arm_l_1.select_set(True)
+            arm_l_2.select_set(True)
+            arm_r_1.select_set(True)
+            arm_r_2.select_set(True)
+            leg_l_1.select_set(True)
+            leg_l_2.select_set(True)
+            leg_r_1.select_set(True)
+            leg_r_2.select_set(True)
             foot_l.select_set(True)
             foot_r.select_set(True)
             
@@ -705,3 +773,106 @@ class MYADDON_OT_create_animated_character(bpy.types.Operator):
             return {'CANCELLED'}
 
         return {'FINISHED'}
+
+
+class MYADDON_OT_control_character(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_control_character"
+    bl_label = "キャラクターをキーボードで動かす"
+    bl_description = "WASDキーや矢印キーでキャラクターを動かします。ESCキーで終了します。"
+    
+    _timer = None
+    
+    forward = False
+    backward = False
+    left = False
+    right = False
+
+    def modal(self, context, event):
+        rig = context.active_object
+        if rig is None or rig.name != "PlayerRig":
+            self.report({'WARNING'}, "PlayerRigが選択されていません。選択した状態で開始してください。")
+            return self.cancel(context)
+
+        if event.type == 'W' or event.type == 'UP_ARROW':
+            if event.value == 'PRESS':
+                self.forward = True
+            elif event.value == 'RELEASE':
+                self.forward = False
+        elif event.type == 'S' or event.type == 'DOWN_ARROW':
+            if event.value == 'PRESS':
+                self.backward = True
+            elif event.value == 'RELEASE':
+                self.backward = False
+        elif event.type == 'A' or event.type == 'LEFT_ARROW':
+            if event.value == 'PRESS':
+                self.left = True
+            elif event.value == 'RELEASE':
+                self.left = False
+        elif event.type == 'D' or event.type == 'RIGHT_ARROW':
+            if event.value == 'PRESS':
+                self.right = True
+            elif event.value == 'RELEASE':
+                self.right = False
+        elif event.type == 'ESC':
+            return self.cancel(context)
+
+        if event.type == 'TIMER':
+            is_moving = False
+            if self.forward:
+                is_moving = True
+            elif self.backward:
+                is_moving = True
+            elif self.left:
+                is_moving = True
+            elif self.right:
+                is_moving = True
+
+            if is_moving:
+                if not context.screen.is_animation_playing:
+                    bpy.ops.screen.animation_play()
+
+                if self.left:
+                    rig.rotation_euler[2] += 0.05
+                if self.right:
+                    rig.rotation_euler[2] -= 0.05
+
+                import math
+                angle = rig.rotation_euler[2]
+                dx = -math.sin(angle) * 0.08
+                dy = math.cos(angle) * 0.08
+
+                if self.forward:
+                    rig.location[0] += dx
+                    rig.location[1] += dy
+                if self.backward:
+                    rig.location[0] -= dx
+                    rig.location[1] -= dy
+            else:
+                if context.screen.is_animation_playing:
+                    bpy.ops.screen.animation_cancel(restore_frame=False)
+
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        rig = context.active_object
+        if rig is None or rig.name != "PlayerRig":
+            self.report({'WARNING'}, "PlayerRigが選択されていません。選択した状態で実行してください。")
+            return {'CANCELLED'}
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.016, window=context.window)
+        wm.modal_handler_add(self)
+        
+        self.report({'INFO'}, "WASD/矢印キーでキャラクターの操作を開始しました。ESCキーで終了します。")
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        if context.screen.is_animation_playing:
+            bpy.ops.screen.animation_cancel(restore_frame=False)
+
+        if self._timer is not None:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+
+        self.report({'INFO'}, "キャラクターの操作を終了しました。")
+        return {'CANCELLED'}

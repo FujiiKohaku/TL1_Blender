@@ -43,6 +43,7 @@ from .op_add import (
     MYADDON_OT_generate_grass_preview,
     MYADDON_OT_clear_grass_preview,
     MYADDON_OT_create_animated_character,
+    MYADDON_OT_control_character,
 )
 from .op_export import MYADDON_OT_export_scene, MYADDON_OT_export_scene_json
 from .ui import TOPBAR_MT_my_level_menu, OBJECT_PT_level_editor
@@ -97,6 +98,7 @@ classes = (
     MYADDON_OT_generate_grass_preview,
     MYADDON_OT_clear_grass_preview,
     MYADDON_OT_create_animated_character,
+    MYADDON_OT_control_character,
     MYADDON_OT_export_scene,
     MYADDON_OT_export_scene_json,
     TOPBAR_MT_my_level_menu,

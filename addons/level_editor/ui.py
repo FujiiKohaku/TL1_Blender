@@ -20,6 +20,7 @@ from .op_add import (
     MYADDON_OT_generate_grass_preview,
     MYADDON_OT_clear_grass_preview,
     MYADDON_OT_create_animated_character,
+    MYADDON_OT_control_character,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -87,6 +88,12 @@ class TOPBAR_MT_my_level_menu(bpy.types.Menu):
                 MYADDON_OT_create_animated_character.bl_idname,
                 text="走るキャラクターの追加",
                 icon='USER'
+            )
+
+            self.layout.operator(
+                MYADDON_OT_control_character.bl_idname,
+                text="キャラクターをキーボードで動かす",
+                icon='GAMEPAD'
             )
 
             self.layout.operator(
