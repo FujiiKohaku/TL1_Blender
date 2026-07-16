@@ -30,85 +30,67 @@ class TOPBAR_MT_my_level_menu(bpy.types.Menu):
     bl_description = "拡張メニュー by Taro Kamata"
 
     def draw(self, context):
-        import traceback
-        import os
-        log_path = r"C:\Projects\TL1\addons\level_editor\menu_error.txt"
-        
-        try:
-            self.layout.operator("wm.url_open_preset", text="Manual", icon='HELP')
-            self.layout.operator("wm.url_open_preset", text="Tutorial", icon='URL')
+        self.layout.operator("wm.url_open_preset", text="Manual", icon='HELP')
+        self.layout.operator("wm.url_open_preset", text="Tutorial", icon='URL')
 
-            self.layout.separator()
+        self.layout.separator()
 
-            self.layout.operator("wm.save_as_mainfile", text="Save File", icon='FILE_TICK')
-            self.layout.operator(
-                MYADDON_OT_open_in_vscode.bl_idname,
-                text=MYADDON_OT_open_in_vscode.bl_label,
-                icon='CONSOLE'
-            )
+        self.layout.operator("wm.save_as_mainfile", text="Save File", icon='FILE_TICK')
+        self.layout.operator(
+            MYADDON_OT_open_in_vscode.bl_idname,
+            text=MYADDON_OT_open_in_vscode.bl_label,
+            icon='CONSOLE'
+        )
 
-            self.layout.separator()
+        self.layout.separator()
 
-            self.layout.operator(
-                MYADDON_OT_add_ico_sphere.bl_idname,
-                text=MYADDON_OT_add_ico_sphere.bl_label,
-                icon='MESH_ICOSPHERE'
-            )
+        self.layout.operator(
+            MYADDON_OT_add_ico_sphere.bl_idname,
+            text=MYADDON_OT_add_ico_sphere.bl_label,
+            icon='MESH_ICOSPHERE'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_add_uv_sphere.bl_idname,
-                text=MYADDON_OT_add_uv_sphere.bl_label,
-                icon='SPHERE'
-            )
+        self.layout.operator(
+            MYADDON_OT_add_uv_sphere.bl_idname,
+            text=MYADDON_OT_add_uv_sphere.bl_label,
+            icon='SPHERE'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_add_cube.bl_idname,
-                text=MYADDON_OT_add_cube.bl_label,
-                icon='CUBE'
-            )
+        self.layout.operator(
+            MYADDON_OT_add_cube.bl_idname,
+            text=MYADDON_OT_add_cube.bl_label,
+            icon='CUBE'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_spawn_create_player.bl_idname,
-                text="プレイヤー出現ポイントの作成",
-                icon='OUTLINER_OB_EMPTY'
-            )
+        self.layout.operator(
+            MYADDON_OT_spawn_create_player.bl_idname,
+            text="プレイヤー出現ポイントの作成",
+            icon='OUTLINER_OB_EMPTY'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_spawn_create_enemy.bl_idname,
-                text="敵出現ポイントの作成",
-                icon='OUTLINER_OB_EMPTY'
-            )
+        self.layout.operator(
+            MYADDON_OT_spawn_create_enemy.bl_idname,
+            text="敵出現ポイントの作成",
+            icon='OUTLINER_OB_EMPTY'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_create_terrain_mesh.bl_idname,
-                text="地形（Terrain）オブジェクトの作成",
-                icon='OUTLINER_OB_GRID'
-            )
+        self.layout.operator(
+            MYADDON_OT_create_terrain_mesh.bl_idname,
+            text="地形（Terrain）オブジェクトの作成",
+            icon='GRID'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_export_scene.bl_idname,
-                text=MYADDON_OT_export_scene.bl_label,
-                icon='EXPORT'
-            )
+        self.layout.operator(
+            MYADDON_OT_export_scene.bl_idname,
+            text=MYADDON_OT_export_scene.bl_label,
+            icon='EXPORT'
+        )
 
-            self.layout.operator(
-                MYADDON_OT_export_scene_json.bl_idname,
-                text=MYADDON_OT_export_scene_json.bl_label,
-                icon='EXPORT'
-            )
-
-            if os.path.exists(log_path):
-                try:
-                    os.remove(log_path)
-                except Exception:
-                    pass
-        except Exception as e:
-            try:
-                with open(log_path, "w", encoding="utf-8") as f:
-                    f.write("GEMINI MENU DRAW ERROR DETECTED:\n")
-                    traceback.print_exc(file=f)
-            except Exception:
-                pass
+        self.layout.operator(
+            MYADDON_OT_export_scene_json.bl_idname,
+            text=MYADDON_OT_export_scene_json.bl_label,
+            icon='EXPORT'
+        )
 
     @staticmethod
     def submenu(self, context):
