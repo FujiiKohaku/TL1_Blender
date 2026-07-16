@@ -1,4 +1,3 @@
-raise Exception("GEMINI_INIT_TEST_ERROR")
 import bpy
 from .op_system import MYADDON_OT_open_in_vscode
 from .utils import VectorUtility, DrawUtility
