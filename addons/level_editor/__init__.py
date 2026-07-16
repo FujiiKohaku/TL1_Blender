@@ -1,4 +1,32 @@
+if "bpy" in locals():
+    import importlib
+    if "op_system" in locals():
+        importlib.reload(op_system)
+    if "utils" in locals():
+        importlib.reload(utils)
+    if "draw" in locals():
+        importlib.reload(draw)
+    if "op_add" in locals():
+        importlib.reload(op_add)
+    if "op_export" in locals():
+        importlib.reload(op_export)
+    if "ui" in locals():
+        importlib.reload(ui)
+    if "disabled" in locals():
+        importlib.reload(disabled)
+    if "spawn" in locals():
+        importlib.reload(spawn)
+
 import bpy
+from . import op_system
+from . import utils
+from . import draw
+from . import op_add
+from . import op_export
+from . import ui
+from . import disabled
+from . import spawn
+
 from .op_system import MYADDON_OT_open_in_vscode
 from .utils import VectorUtility, DrawUtility
 from .draw import DrawCollider, DrawTrigger
