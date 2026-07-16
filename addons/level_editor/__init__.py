@@ -1,21 +1,14 @@
-if "bpy" in locals():
-    import importlib
-    if "op_system" in locals():
-        importlib.reload(op_system)
-    if "utils" in locals():
-        importlib.reload(utils)
-    if "draw" in locals():
-        importlib.reload(draw)
-    if "op_add" in locals():
-        importlib.reload(op_add)
-    if "op_export" in locals():
-        importlib.reload(op_export)
-    if "ui" in locals():
-        importlib.reload(ui)
-    if "disabled" in locals():
-        importlib.reload(disabled)
-    if "spawn" in locals():
-        importlib.reload(spawn)
+import sys
+import importlib
+
+# サブモジュールの強制リロード（Blenderの登録キャッシュを破壊する）
+prefix = __package__ + "."
+for mod_name in list(sys.modules.keys()):
+    if mod_name.startswith(prefix):
+        try:
+            importlib.reload(sys.modules[mod_name])
+        except Exception as e:
+            print(f"Failed to reload sub-module {mod_name}: {str(e)}")
 
 import bpy
 from . import op_system
