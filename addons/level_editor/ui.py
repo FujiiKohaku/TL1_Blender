@@ -17,6 +17,8 @@ from .op_add import (
     MYADDON_OT_create_terrain_mesh,
     MYADDON_OT_add_uv_sphere,
     MYADDON_OT_start_grass_paint,
+    MYADDON_OT_generate_grass_preview,
+    MYADDON_OT_clear_grass_preview,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -370,6 +372,18 @@ class OBJECT_PT_level_editor(bpy.types.Panel):
                 MYADDON_OT_start_grass_paint.bl_idname,
                 text="草をマウスで植える (ペイント開始)",
                 icon='BRUSH_DATA'
+            )
+            
+            row = layout.row(align=True)
+            row.operator(
+                MYADDON_OT_generate_grass_preview.bl_idname,
+                text="草のプレビューを表示",
+                icon='OUTLINER_OB_MESH'
+            )
+            row.operator(
+                MYADDON_OT_clear_grass_preview.bl_idname,
+                text="消去",
+                icon='TRASH'
             )
         else:
             layout.operator(MYADDON_OT_add_terrain.bl_idname, text=MYADDON_OT_add_terrain.bl_label)

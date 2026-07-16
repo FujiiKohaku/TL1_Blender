@@ -332,3 +332,127 @@ class MYADDON_OT_start_grass_paint(bpy.types.Operator):
             return {'CANCELLED'}
 
         return {'FINISHED'}
+
+
+class MYADDON_OT_generate_grass_preview(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_generate_grass_preview"
+    bl_label = "草のプレビューを表示"
+    bl_description = "塗られたウェイト位置にダミーの草（緑の円錐）を生成して配置します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        obj = context.active_object
+        if obj is None or obj.type != 'MESH':
+            self.report({'WARNING'}, "地形オブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        vg = obj.vertex_groups.get("GrassGroup")
+        if vg is None:
+            self.report({'WARNING'}, "草のペイントデータ（GrassGroup）が見つかりません。まずペイントしてください。")
+            return {'CANCELLED'}
+
+        original_mode = obj.mode
+        if original_mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        col_name = "GrassPreview"
+        preview_col = context.scene.collection.children.get(col_name)
+        
+        if preview_col is not None:
+            for p_obj in list(preview_col.objects):
+                bpy.data.objects.remove(p_obj, do_unlink=True)
+        else:
+            preview_col = bpy.data.collections.new(col_name)
+            context.scene.collection.children.link(preview_col)
+
+        mat_name = "GrassPreviewMaterial"
+        mat = bpy.data.materials.get(mat_name)
+        if mat is None:
+            mat = bpy.data.materials.new(name=mat_name)
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes.get("Principled BSDF")
+            if bsdf is not None:
+                bsdf.inputs['Base Color'].default_value = (0.1, 0.8, 0.1, 1.0)
+
+        matrix_world = obj.matrix_world
+        mesh = obj.data
+        step = 3
+        import random
+        random.seed(42)
+        
+        created_count = 0
+        for i in range(0, len(mesh.vertices), step):
+            v = mesh.vertices[i]
+            
+            in_group = False
+            weight = 0.0
+            for g in v.groups:
+                if g.group == vg.index:
+                    in_group = True
+                    weight = g.weight
+            
+            if in_group:
+                if weight >= 0.1:
+                    if random.random() < weight:
+                        world_pos = matrix_world @ v.co
+                        
+                        bpy.ops.mesh.primitive_cone_add(
+                            radius1=0.15,
+                            radius2=0.0,
+                            depth=1.2,
+                            location=world_pos
+                        )
+                        
+                        cone_obj = context.view_layer.objects.active
+                        if cone_obj is not None:
+                            cone_obj.name = "GrassCone"
+                            cone_obj.data.materials.append(mat)
+                            preview_col.objects.link(cone_obj)
+                            if cone_obj.name in context.scene.collection.objects:
+                                try:
+                                    context.scene.collection.objects.unlink(cone_obj)
+                                except Exception:
+                                    pass
+                            created_count += 1
+
+        context.view_layer.objects.active = obj
+        if original_mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode=original_mode)
+
+        self.report({'INFO'}, f"草プレビューを {created_count} 本生成しました")
+        return {'FINISHED'}
+
+
+class MYADDON_OT_clear_grass_preview(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_clear_grass_preview"
+    bl_label = "プレビュー消去"
+    bl_description = "草のプレビューオブジェクトとコレクションを一括削除します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        col_name = "GrassPreview"
+        preview_col = context.scene.collection.children.get(col_name)
+        
+        if preview_col is None:
+            self.report({'INFO'}, "消去するプレビューが見つかりません")
+            return {'FINISHED'}
+
+        original_obj = context.active_object
+        original_mode = None
+        if original_obj is not None:
+            original_mode = original_obj.mode
+            if original_mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+        for p_obj in list(preview_col.objects):
+            bpy.data.objects.remove(p_obj, do_unlink=True)
+
+        bpy.data.collections.remove(preview_col)
+
+        if original_obj is not None and original_mode is not None:
+            context.view_layer.objects.active = original_obj
+            if original_mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode=original_mode)
+
+        self.report({'INFO'}, "草プレビューを消去しました")
+        return {'FINISHED'}

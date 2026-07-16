@@ -436,6 +436,14 @@ class MYADDON_OT_export_scene_json(bpy.types.Operator, bpy_extras.io_utils.Expor
             if object.parent:
                 continue
 
+            in_preview = False
+            for col in object.users_collection:
+                if col.name == "GrassPreview":
+                    in_preview = True
+            
+            if in_preview:
+                continue
+
             object_data = self.make_object_data(object)
             scene_data["scene"].append(object_data)
 
