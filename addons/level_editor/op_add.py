@@ -435,6 +435,26 @@ class MYADDON_OT_generate_grass_preview(bpy.types.Operator):
                         # マテリアル適用
                         grass_obj.data.materials.append(mat)
                         
+                        # 簡易変形モディファイア（曲げ）を追加して風揺れを表現
+                        try:
+                            mod = grass_obj.modifiers.new(name="WindSway", type='SIMPLE_DEFORM')
+                            mod.deform_method = 'BEND'
+                            mod.deform_axis = 'X'
+                            
+                            # 角度（angle）にサイン波ドライバを追加
+                            driver_fcurve = mod.driver_add("angle")
+                            driver = driver_fcurve.driver
+                            driver.type = 'SCRIPTED'
+                            
+                            # 各々の草にランダムな揺れの速さ、揺れのズレ（位相）、揺れの強さを適用
+                            speed = random.uniform(0.05, 0.08)
+                            offset = random.uniform(0.0, 6.28)
+                            amplitude = random.uniform(0.1, 0.18)
+                            
+                            driver.expression = f"sin(frame * {speed:.4f} + {offset:.4f}) * {amplitude:.4f}"
+                        except Exception as e:
+                            pass
+
                         # コレクションに追加（マスターコレクションへは自動追加されないためunlink不要）
                         preview_col.objects.link(grass_obj)
                         created_count += 1
