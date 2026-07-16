@@ -500,3 +500,208 @@ class MYADDON_OT_clear_grass_preview(bpy.types.Operator):
 
         self.report({'INFO'}, "草プレビューを消去しました")
         return {'FINISHED'}
+
+
+class MYADDON_OT_create_animated_character(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_create_animated_character"
+    bl_label = "走るキャラクターの追加"
+    bl_description = "画像そっくりのTポーズSDキャラを自動モデリングし、ボーンを入れて走るアニメーションを適用します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        active_obj = context.active_object
+        if active_obj is not None:
+            if active_obj.mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+        cursor_loc = context.scene.cursor.location
+
+        try:
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.45))
+            head_obj = context.active_object
+            head_obj.name = "Char_Head"
+            head_obj.scale = (0.7, 0.65, 0.6)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.85))
+            body_obj = context.active_object
+            body_obj.name = "Char_Body"
+            body_obj.scale = (0.35, 0.3, 0.5)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.45, 0, 1.1))
+            arm_l = context.active_object
+            arm_l.name = "Char_Arm_L"
+            arm_l.scale = (0.5, 0.15, 0.15)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.45, 0, 1.1))
+            arm_r = context.active_object
+            arm_r.name = "Char_Arm_R"
+            arm_r.scale = (0.5, 0.15, 0.15)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, 0, 0.3))
+            leg_l = context.active_object
+            leg_l.name = "Char_Leg_L"
+            leg_l.scale = (0.15, 0.15, 0.55)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, 0, 0.3))
+            leg_r = context.active_object
+            leg_r.name = "Char_Leg_R"
+            leg_r.scale = (0.15, 0.15, 0.55)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, -0.05, 0.05))
+            foot_l = context.active_object
+            foot_l.name = "Char_Foot_L"
+            foot_l.scale = (0.15, 0.25, 0.1)
+            bpy.ops.object.transform_apply(scale=True)
+            
+            bpy.ops.mesh.primitive_cube_add(size=1.0, location=(-0.15, -0.05, 0.05))
+            foot_r = context.active_object
+            foot_r.name = "Char_Foot_R"
+            foot_r.scale = (0.15, 0.25, 0.1)
+            bpy.ops.object.transform_apply(scale=True)
+
+            bpy.ops.object.select_all(action='DESELECT')
+            
+            head_obj.select_set(True)
+            body_obj.select_set(True)
+            arm_l.select_set(True)
+            arm_r.select_set(True)
+            leg_l.select_set(True)
+            leg_r.select_set(True)
+            foot_l.select_set(True)
+            foot_r.select_set(True)
+            
+            context.view_layer.objects.active = body_obj
+            bpy.ops.object.join()
+            
+            char_mesh = body_obj
+            char_mesh.name = "PlayerModel"
+            
+            char_mesh.location = cursor_loc
+            bpy.ops.object.transform_apply(location=True)
+
+            arm_data = bpy.data.armatures.new("ChibiArmatureData")
+            rig_obj = bpy.data.objects.new("PlayerRig", arm_data)
+            context.scene.collection.objects.link(rig_obj)
+            
+            context.view_layer.objects.active = rig_obj
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            spine = arm_data.edit_bones.new("Spine")
+            spine.head = (0.0, 0.0, 0.6)
+            spine.tail = (0.0, 0.0, 1.2)
+            
+            head = arm_data.edit_bones.new("Head")
+            head.head = (0.0, 0.0, 1.2)
+            head.tail = (0.0, 0.0, 1.8)
+            head.parent = spine
+            
+            arm_l_bone = arm_data.edit_bones.new("Arm_L")
+            arm_l_bone.head = (0.1, 0.0, 1.1)
+            arm_l_bone.tail = (0.7, 0.0, 1.1)
+            arm_l_bone.parent = spine
+            
+            arm_r_bone = arm_data.edit_bones.new("Arm_R")
+            arm_r_bone.head = (-0.1, 0.0, 1.1)
+            arm_r_bone.tail = (-0.7, 0.0, 1.1)
+            arm_r_bone.parent = spine
+            
+            leg_l_bone = arm_data.edit_bones.new("Leg_L")
+            leg_l_bone.head = (0.15, 0.0, 0.6)
+            leg_l_bone.tail = (0.15, 0.0, 0.0)
+            
+            leg_r_bone = arm_data.edit_bones.new("Leg_R")
+            leg_r_bone.head = (-0.15, 0.0, 0.6)
+            leg_r_bone.tail = (-0.15, 0.0, 0.0)
+            
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            rig_obj.location = cursor_loc
+            bpy.ops.object.transform_apply(location=True)
+
+            bpy.ops.object.select_all(action='DESELECT')
+            char_mesh.select_set(True)
+            rig_obj.select_set(True)
+            context.view_layer.objects.active = rig_obj
+            
+            bpy.ops.object.parent_set(type='ARMATURE_AUTO')
+
+            if rig_obj.animation_data is None:
+                rig_obj.animation_data_create()
+                
+            action = bpy.data.actions.new("Player_Run")
+            rig_obj.animation_data.action = action
+            
+            for pb in rig_obj.pose.bones:
+                pb.rotation_mode = 'XYZ'
+                
+            import math
+            rad30 = math.radians(30)
+            rad45 = math.radians(45)
+            
+            keyframes = [
+                ("Leg_L", 'X', 0, -rad30),
+                ("Leg_R", 'X', 0, rad30),
+                ("Arm_L", 'X', 0, rad45),
+                ("Arm_R", 'X', 0, -rad30),
+                ("Spine", 'X', 0, math.radians(10)),
+                
+                ("Leg_L", 'X', 6, 0.0),
+                ("Leg_R", 'X', 6, 0.0),
+                ("Arm_L", 'X', 6, 0.0),
+                ("Arm_R", 'X', 6, 0.0),
+                
+                ("Leg_L", 'X', 12, rad30),
+                ("Leg_R", 'X', 12, -rad30),
+                ("Arm_L", 'X', 12, -rad30),
+                ("Arm_R", 'X', 12, rad45),
+                ("Spine", 'X', 12, math.radians(10)),
+                
+                ("Leg_L", 'X', 18, 0.0),
+                ("Leg_R", 'X', 18, 0.0),
+                ("Arm_L", 'X', 18, 0.0),
+                ("Arm_R", 'X', 18, 0.0),
+                
+                ("Leg_L", 'X', 24, -rad30),
+                ("Leg_R", 'X', 24, rad30),
+                ("Arm_L", 'X', 24, rad45),
+                ("Arm_R", 'X', 24, -rad30),
+                ("Spine", 'X', 24, math.radians(10))
+            ]
+            
+            for bone_name, axis, frame, val in keyframes:
+                pb = rig_obj.pose.bones.get(bone_name)
+                if pb is not None:
+                    axis_idx = 0
+                    if axis == 'Y':
+                        axis_idx = 1
+                    elif axis == 'Z':
+                        axis_idx = 2
+                    
+                    pb.rotation_euler[axis_idx] = val
+                    pb.keyframe_insert(data_path="rotation_euler", index=axis_idx, frame=frame)
+            
+            for frame, val in [(0, 0.85), (6, 0.95), (12, 0.85), (18, 0.95), (24, 0.85)]:
+                pb = rig_obj.pose.bones.get("Spine")
+                if pb is not None:
+                    pb.location[2] = val - 0.85
+                    pb.keyframe_insert(data_path="location", index=2, frame=frame)
+            
+            context.scene.frame_end = 24
+            
+            bpy.ops.object.select_all(action='DESELECT')
+            rig_obj.select_set(True)
+            context.view_layer.objects.active = rig_obj
+            
+            self.report({'INFO'}, "走るアニメーション付きローポリキャラクターを追加しました！スペースキーで走ります。")
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"キャラクターの追加に失敗しました: {str(e)}")
+            return {'CANCELLED'}
+
+        return {'FINISHED'}

@@ -19,6 +19,7 @@ from .op_add import (
     MYADDON_OT_start_grass_paint,
     MYADDON_OT_generate_grass_preview,
     MYADDON_OT_clear_grass_preview,
+    MYADDON_OT_create_animated_character,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -80,6 +81,12 @@ class TOPBAR_MT_my_level_menu(bpy.types.Menu):
                 MYADDON_OT_spawn_create_enemy.bl_idname,
                 text="敵出現ポイントの作成",
                 icon='OUTLINER_OB_EMPTY'
+            )
+
+            self.layout.operator(
+                MYADDON_OT_create_animated_character.bl_idname,
+                text="走るキャラクターの追加",
+                icon='USER'
             )
 
             self.layout.operator(
