@@ -15,6 +15,7 @@ from .op_add import (
     MYADDON_OT_add_terrain,
     MYADDON_OT_add_mesh_sync,
     MYADDON_OT_create_terrain_mesh,
+    MYADDON_OT_add_uv_sphere,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -52,6 +53,12 @@ class TOPBAR_MT_my_level_menu(bpy.types.Menu):
                 MYADDON_OT_add_ico_sphere.bl_idname,
                 text=MYADDON_OT_add_ico_sphere.bl_label,
                 icon='MESH_ICOSPHERE'
+            )
+
+            self.layout.operator(
+                MYADDON_OT_add_uv_sphere.bl_idname,
+                text=MYADDON_OT_add_uv_sphere.bl_label,
+                icon='SPHERE'
             )
 
             self.layout.operator(

@@ -282,3 +282,19 @@ class MYADDON_OT_create_terrain_mesh(bpy.types.Operator):
             self.report({'WARNING'}, f"スカルプトモードへの切り替えに失敗しました: {str(e)}")
 
         return {'FINISHED'}
+
+
+class MYADDON_OT_add_uv_sphere(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_add_uv_sphere"
+    bl_label = "UV球追加"
+    bl_description = "UV球（Sphere）を追加します"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        try:
+            bpy.ops.mesh.primitive_uv_sphere_add()
+            self.report({'INFO'}, "UV球を追加しました。")
+        except Exception as e:
+            self.report({'ERROR'}, f"UV球の追加に失敗しました: {str(e)}")
+            return {'CANCELLED'}
+        return {'FINISHED'}
