@@ -334,10 +334,32 @@ class MYADDON_OT_start_grass_paint(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def get_or_create_grass_mesh():
+    mesh_name = "GrassPreviewMesh"
+    mesh = bpy.data.meshes.get(mesh_name)
+    if mesh is not None:
+        return mesh
+
+    # 十字に交差した2枚の細長い板（ゲーム用草モデルの定番）
+    verts = [
+        (-0.2, 0.0, 0.0), (0.2, 0.0, 0.0), (-0.2, 0.0, 1.2), (0.2, 0.0, 1.2),
+        (0.0, -0.2, 0.0), (0.0, 0.2, 0.0), (0.0, -0.2, 1.2), (0.0, 0.2, 1.2)
+    ]
+    faces = [
+        (0, 1, 3, 2),
+        (4, 5, 7, 6)
+    ]
+
+    mesh = bpy.data.meshes.new(mesh_name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    return mesh
+
+
 class MYADDON_OT_generate_grass_preview(bpy.types.Operator):
     bl_idname = "myaddon.myaddon_ot_generate_grass_preview"
     bl_label = "草のプレビューを表示"
-    bl_description = "塗られたウェイト位置にダミーの草（緑の円錐）を生成して配置します"
+    bl_description = "塗られたウェイト位置に十字クロスの簡易草オブジェクトを生成して配置します"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -374,6 +396,9 @@ class MYADDON_OT_generate_grass_preview(bpy.types.Operator):
             if bsdf is not None:
                 bsdf.inputs['Base Color'].default_value = (0.1, 0.8, 0.1, 1.0)
 
+        # 草メッシュを取得
+        grass_mesh = get_or_create_grass_mesh()
+
         matrix_world = obj.matrix_world
         mesh = obj.data
         step = 3
@@ -396,24 +421,23 @@ class MYADDON_OT_generate_grass_preview(bpy.types.Operator):
                     if random.random() < weight:
                         world_pos = matrix_world @ v.co
                         
-                        bpy.ops.mesh.primitive_cone_add(
-                            radius1=0.15,
-                            radius2=0.0,
-                            depth=1.2,
-                            location=world_pos
-                        )
+                        # 十字草オブジェクトを作成
+                        grass_obj = bpy.data.objects.new("GrassCone", grass_mesh)
+                        grass_obj.location = world_pos
                         
-                        cone_obj = context.view_layer.objects.active
-                        if cone_obj is not None:
-                            cone_obj.name = "GrassCone"
-                            cone_obj.data.materials.append(mat)
-                            preview_col.objects.link(cone_obj)
-                            if cone_obj.name in context.scene.collection.objects:
-                                try:
-                                    context.scene.collection.objects.unlink(cone_obj)
-                                except Exception:
-                                    pass
-                            created_count += 1
+                        # ランダムにZ軸（上向き軸）まわりを回転させてばらつきを表現
+                        grass_obj.rotation_euler.z = random.uniform(0.0, 6.28)
+                        
+                        # ランダムにスケール（高さ）をばらつかせる
+                        scale_factor = random.uniform(0.8, 1.3)
+                        grass_obj.scale = (scale_factor, scale_factor, scale_factor)
+                        
+                        # マテリアル適用
+                        grass_obj.data.materials.append(mat)
+                        
+                        # コレクションに追加（マスターコレクションへは自動追加されないためunlink不要）
+                        preview_col.objects.link(grass_obj)
+                        created_count += 1
 
         context.view_layer.objects.active = obj
         if original_mode != 'OBJECT':
