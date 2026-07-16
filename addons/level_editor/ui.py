@@ -70,7 +70,7 @@ class TOPBAR_MT_my_menu(bpy.types.Menu):
         self.layout.operator(
             MYADDON_OT_create_terrain_mesh.bl_idname,
             text="地形（Terrain）オブジェクトの作成",
-            icon='LANDSCAPE'
+            icon='OUTLINER_OB_GRID'
         )
 
         self.layout.operator(
