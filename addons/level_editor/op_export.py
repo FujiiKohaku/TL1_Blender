@@ -2,6 +2,7 @@ import bpy
 import bpy_extras
 import math
 import json
+import os
 from .utils import VectorUtility
 
 
@@ -369,11 +370,42 @@ class MYADDON_OT_export_scene_json(bpy.types.Operator, bpy_extras.io_utils.Expor
                     pass
             bpy.context.view_layer.objects.active = active_obj
 
+            # 草ペイントの頂点スキャン
+            grass_positions = []
+            vg = object.vertex_groups.get("GrassGroup")
+            if vg is not None:
+                import random
+                random.seed(42)
+                matrix_world = object.matrix_world
+                mesh = object.data
+                step = 3
+                for i in range(0, len(mesh.vertices), step):
+                    v = mesh.vertices[i]
+                    
+                    in_group = False
+                    weight = 0.0
+                    for g in v.groups:
+                        if g.group == vg.index:
+                            in_group = True
+                            weight = g.weight
+                    
+                    if in_group:
+                        if weight >= 0.1:
+                            if random.random() < weight:
+                                world_pos = matrix_world @ v.co
+                                game_pos = [
+                                    float(world_pos.x),
+                                    float(world_pos.z),
+                                    float(-world_pos.y)
+                                ]
+                                grass_positions.append(game_pos)
+
             object_data["terrain"] = {
                 "enable": True,
                 "file": obj_filename,
                 "width": float(object.get("terrain_width", 100.0)),
-                "height": float(object.get("terrain_height", 10.0))
+                "height": float(object.get("terrain_height", 10.0)),
+                "grass_positions": grass_positions
             }
 
         if "mesh_sync" in object:
@@ -390,12 +422,27 @@ class MYADDON_OT_export_scene_json(bpy.types.Operator, bpy_extras.io_utils.Expor
             "scene": []
         }
 
+        active_obj = bpy.context.view_layer.objects.active
+        original_modes = {}
+        for obj in bpy.context.scene.objects:
+            if obj.mode != 'OBJECT':
+                original_modes[obj] = obj.mode
+                bpy.context.view_layer.objects.active = obj
+                bpy.ops.object.mode_set(mode='OBJECT')
+        
+        bpy.context.view_layer.objects.active = active_obj
+
         for object in bpy.context.scene.objects:
             if object.parent:
                 continue
 
             object_data = self.make_object_data(object)
             scene_data["scene"].append(object_data)
+
+        for obj, mode in original_modes.items():
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.mode_set(mode=mode)
+        bpy.context.view_layer.objects.active = active_obj
 
         with open(self.filepath, "wt", encoding="utf-8") as file:
             json.dump(scene_data, file, ensure_ascii=False, indent=4)

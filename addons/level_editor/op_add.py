@@ -276,6 +276,11 @@ class MYADDON_OT_create_terrain_mesh(bpy.types.Operator):
         grid_obj["terrain_height"] = 10.0
 
         try:
+            grid_obj.vertex_groups.new(name="GrassGroup")
+        except Exception as e:
+            self.report({'WARNING'}, f"頂点グループの作成に失敗しました: {str(e)}")
+
+        try:
             bpy.ops.object.mode_set(mode='SCULPT')
             self.report({'INFO'}, "Terrainオブジェクトを作成しました。スカルプトモードを開始します。")
         except Exception as e:
@@ -297,4 +302,33 @@ class MYADDON_OT_add_uv_sphere(bpy.types.Operator):
         except Exception as e:
             self.report({'ERROR'}, f"UV球の追加に失敗しました: {str(e)}")
             return {'CANCELLED'}
+        return {'FINISHED'}
+
+
+class MYADDON_OT_start_grass_paint(bpy.types.Operator):
+    bl_idname = "myaddon.myaddon_ot_start_grass_paint"
+    bl_label = "草をマウスで植える（ペイント開始）"
+    bl_description = "ウェイトペイントモードを開始し、草を植えたい場所をマウスで塗ります"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        obj = context.active_object
+        if obj is None or obj.type != 'MESH':
+            self.report({'WARNING'}, "メッシュオブジェクトが選択されていません")
+            return {'CANCELLED'}
+
+        group_name = "GrassGroup"
+        vg = obj.vertex_groups.get(group_name)
+        if vg is None:
+            vg = obj.vertex_groups.new(name=group_name)
+
+        obj.vertex_groups.active = vg
+
+        try:
+            bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+            self.report({'INFO'}, "草ペイントを開始します。マウスで草を生やす場所を塗ってください（赤＝草が密になる）")
+        except Exception as e:
+            self.report({'ERROR'}, f"ウェイトペイントモードへの切り替えに失敗しました: {str(e)}")
+            return {'CANCELLED'}
+
         return {'FINISHED'}

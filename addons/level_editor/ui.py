@@ -16,6 +16,7 @@ from .op_add import (
     MYADDON_OT_add_mesh_sync,
     MYADDON_OT_create_terrain_mesh,
     MYADDON_OT_add_uv_sphere,
+    MYADDON_OT_start_grass_paint,
 )
 from .op_export import (
     MYADDON_OT_export_scene,
@@ -364,6 +365,12 @@ class OBJECT_PT_level_editor(bpy.types.Panel):
             layout.prop(context.object, '["terrain_file"]', text="Heightmap File")
             layout.prop(context.object, '["terrain_width"]', text="Width")
             layout.prop(context.object, '["terrain_height"]', text="Height")
+            layout.separator()
+            layout.operator(
+                MYADDON_OT_start_grass_paint.bl_idname,
+                text="草をマウスで植える (ペイント開始)",
+                icon='BRUSH_DATA'
+            )
         else:
             layout.operator(MYADDON_OT_add_terrain.bl_idname, text=MYADDON_OT_add_terrain.bl_label)
 
